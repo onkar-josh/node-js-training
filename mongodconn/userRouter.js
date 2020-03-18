@@ -4,7 +4,8 @@ const dbConn = require('./mongoConn.js');
 const bodyParser = require('body-parser');
 const mailFile = require('./mailApi.js');
 const validator = require("email-validator");
-const validate =require('./validation.js')
+const validate =require('./validation.js');
+
  
 router.use(bodyParser.json());
 router.post('/adduser',function(req,res){
@@ -12,28 +13,28 @@ router.post('/adduser',function(req,res){
 	const myUserValidation = new validate.userValidation(req.body.email,req.body.name,req.body.mobile_no);
 	var mail = myUserValidation.validateEmail(req.body.email);
 	var name = myUserValidation.validateName(req.body.name);
+	var mail = req.body.email;
 	
 	if(mail && name)
 	{
-		var query = { email: req.body.email};
-		dbConn.get().collection("userNonDuplicate").find(query).toArray(function(err, result) {
-			if (err) throw err;
-			else if (result == 0)
-			{
-				dbConn.get().collection('userNonDuplicate').insertOne(req.body,function(err,resp){
+		myUserValidation.checkEmail(mail,function(err,data){
+		if(err) throw err;
+		console.log(data);
+		else if(data == 1)
+		{
+					res.status(400).json("there is email already in use");
+		}
+		else
+		{
+			dbConn.get().collection('userNonDuplicate').insertOne(req.body,function(err,resp){
 				if (err)
 				{
 				throw err;
 				}
-			console.log(resp.result.n +"document inserted go and check mongo database");
-			});	
-			}
-			else
-			{
-				res.status(409).json("available email please check email");
-			}
+				console.log(resp.result.n +"document inserted go and check mongo database");
+				});		
+		}		
 		});
-		
 	}
 	else
 	{

@@ -1,3 +1,5 @@
+const dbConn = require('./mongoConn.js');
+
 class userValidation
 {
 	constructor(name, email, mobileNo){ 
@@ -5,6 +7,17 @@ class userValidation
         this.email = email; 
         this.mobileNo= mobileNo; 
     } 
+	
+checkEmail(mail,callback)
+{	
+	var myresult;
+	var query = { email: mail};
+		dbConn.get().collection("userNonDuplicate").find(query).toArray(function(err, result) {
+			if (err) throw err;
+			console.log(result.length);	
+			return callback(null,result.length);
+			});
+}
 	
 validateEmail(mail) 
 {
